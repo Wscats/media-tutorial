@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>Document</title>
+</head>
+
+<body>
+    <h1>使用RTCPeerConnection流式传输视频</h1>
+    <video id="localVideo" autoplay></video>
+    <video id="remoteVideo" autoplay></video>
+
+    <div>
+        <button id="startButton">Start</button>
+        <button id="callButton">Call</button>
+        <button id="hangupButton">Hang Up</button>
+    </div>
+    <script>
+        const localVideo = document.getElementById('localVideo');
+        const remoteVideo = document.getElementById('remoteVideo');
+
+        let localStream;
+        let remoteStream;
+
+        let localPeerConnection;
+        let remotePeerConnection;
+
+        const startButton = document.getElementById('startButton');
+        const callButton = document.getElementById('callButton');
+        const hangupButton = document.getElementById('hangupButton');
+        startButton.addEventListener('click', function () {
+            navigator.mediaDevices.getUserMedia({
+                    video: true,
+                })
+                .then(function (mediaStream) {
+                    localVideo.srcObject = mediaStream;
+                    localStream = mediaStream;
+                }).catch(function (error) {
+                    console.log(error);
+                });
+        });
+
+        callButton.addEventListener('click', function () {
+            startTime = window.performance.now();
+
+            // Get local media stream tracks.
+            // const videoTracks = localStream.getVideoTracks();
+            // const audioTracks = localStream.getAudioTracks();
+
+            // Create peer connections and add behavior.
+            localPeerConnection = new RTCPeerConnection(null);
+
+            localPeerConnection.addEventListener('icecandidate', function (event) {
+                console.log(event);
+                const peerConnection = event.target;
+                const iceCandidate = event.candidate;
+                // if (iceCandidate) {
+                //     const newIceCandidate = new RTCIceCandidate(iceCandidate);
+                //     const otherPeer = getOtherPeer(peerConnection);
+
+                //     otherPeer.addIceCandidate(newIceCandidate)
+                //         .then(() => {
+                //             handleConnectionSuccess(peerConnection);
+                //         }).catch((error) => {
+                //             handleConnectionFailure(peerConnection, error);
+                //         });
+                // }
+            });
+            // localPeerConnection.addEventListener(
+            //     'iceconnectionstatechange', handleConnectionChange);
+
+            remotePeerConnection = new RTCPeerConnection(null);
+
+            // remotePeerConnection.addEventListener('icecandidate', handleConnection);
+            // remotePeerConnection.addEventListener(
+            //     'iceconnectionstatechange', handleConnectionChange);
+            // remotePeerConnection.addEventListener('addstream', gotRemoteMediaStream);
+
+            // // Add local stream to connection and create offer to connect.
+            // localPeerConnection.addStream(localStream);
+            // localPeerConnection.createOffer(offerOptions)
+            //     .then(createdOffer).catch(setSessionDescriptionError);
+            localPeerConnection.addStream(localStream);
+            localPeerConnection.createOffer({
+                    offerToReceiveVideo: 1,
+                })
+                .then(function (description) {
+                    localPeerConnection.setLocalDescription(description)
+                        .then(() => {
+                            // setLocalDescriptionSuccess(localPeerConnection);
+                        }).catch(setSessionDescriptionError);
+
+                    remotePeerConnection.setRemoteDescription(description)
+                        .then(() => {
+                            // setRemoteDescriptionSuccess(remotePeerConnection);
+                        }).catch(setSessionDescriptionError);
+
+                    remotePeerConnection.createAnswer()
+                        .then(createdAnswer)
+                        .catch(setSessionDescriptionError);
+                }).catch(setSessionDescriptionError);
+        });
+    </script>
+</body>
+
+</html>

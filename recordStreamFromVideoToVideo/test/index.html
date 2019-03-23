@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <title>Demo -- 录制视频，通过RTCPeerConnection展示在web界面上</title>
+</head>
+
+<body>
+    <video id="localVideo" controls autoplay muted></video>
+    <video id="recordedVideo" loop autoplay controls></video>
+    <video id="test" autoplay loop controls></video>
+
+    <div id="buttonDiv">
+        <button id="record">Start Recording</button>
+        <button id="play">play</button>
+        <button id="download">download</button>
+    </div>
+
+    <script>
+        let mediaRecorder;
+        let recordedBlobs;
+        let sourceBuffer;
+
+        let localStream;
+        let recordStream;
+        let localPeerConnection;
+        let remotePeerConnection;
+
+        let localVideo = document.getElementById("localVideo");
+        let recordedVideo = document.getElementById("recordedVideo");
+
+        let recordButton = document.getElementById("record");
+        let playButton = document.getElementById("play");
+        let downloadButton = document.getElementById("download");
+        playButton.disabled = true;
+        downloadButton.disabled = true;
+
+        recordButton.onclick = () => {
+            if (recordButton.textContent === "Start Recording") {
+                recordedBlobs = [];
+                let options = {
+                    mimeType: "video/webm;codecs=vp9"
+                };
+                mediaRecorder = new MediaRecorder(window.stream, options); // 设置音频录入源、格式
+
+                console.log("Created MediaRecorder", mediaRecorder, "with options", options);
+                recordButton.textContent = "Stop Recording";
+                playButton.disabled = true;
+                downloadButton.disabled = true;
+                // mediaRecorder.onstop = handleStop;
+                // mediaRecorder.ondataavailable = handleDataAvailable; // 存放获取的数据
+                mediaRecorder.start(10); //  开始录制 collect 10ms of data
+                console.log("MediaRecorder started", mediaRecorder);
+            } else {
+                stopRecording();
+                recordButton.textContent = "Start Recording";
+                playButton.disabled = false;
+                downloadButton.disabled = false;
+
+                let test = document.getElementById("test");
+                let buffer = new Blob(recordedBlobs, {
+                    type: "video/webm"
+                });
+                test.src = window.URL.createObjectURL(buffer);
+                recordStream = test.captureStream();
+            }
+        };
+        playButton.onclick = call;
+        downloadButton.onclick = download;
+    </script>
+</body>
+
+</html>

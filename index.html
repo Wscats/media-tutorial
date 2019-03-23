@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>Document</title>
+</head>
+
+<body>
+    <style>
+        video {
+            width: 1000px;
+            height: 500px
+        }
+    </style>
+    <video autoplay id="video">Video stream not available.</video>
+    <script>
+        //连接 socket 服务器
+        var socket = new WebSocket('ws://localhost:8080');
+        socket.onopen = () => {
+            console.log('connect');
+            socket.send(JSON.stringify({
+                test: 'abc'
+            }));
+        };
+        // 创建PeerConnection实例 (参数为null则没有iceserver，即使没有stunserver和turnserver，仍可在局域网下通讯)
+        window.RTCPeerConnection = window.mozRTCPeerConnection || window.webkitRTCPeerConnection;
+        let pc = new RTCPeerConnection();
+        localPeerConnection = new RTCPeerConnection(null);
+        let video = document.getElementById('video');
+
+        let localStream;
+        navigator.mediaDevices.getDisplayMedia({
+                video: true,
+                audio: true
+            })
+            .then(stream => {
+                localStream = stream;
+                // we have a stream, attach it to a feedback video element
+                console.log(stream);
+                // video.srcObject = stream;
+                // 向PeerConnection中加入需要发送的流 
+                // Adding a local stream won't trigger the onaddstream callback
+                pc.addStream(stream);
+                video.onloadedmetadata = (e) => {
+                    console.log('onloadedmetadata');
+                    video.play();
+                };
+                stream.onactive = () => {
+                    console.log('onactive');
+                };
+                stream.onremovetrack = () => {
+                    console.log('Stream ended');
+                };
+                pc.createOffer((offer) => {
+                    pc.setLocalDescription(new RTCSessionDescription(offer), function () {
+                        console.log(offer)
+                        socket.send(JSON.stringify({
+                            test: offer
+                        }));
+                        // send the offer to a server to be forwarded to the friend you're calling.
+                    }, (err) => {});
+                }, (err) => {});
+
+            }, error => {
+                console.log("Unable to acquire screen capture", error);
+            });
+
+        socket.onmessage = (event) => {
+            console.log(JSON.parse(event.data));
+            pc.setRemoteDescription(new RTCSessionDescription(JSON.parse(event.data).sdp));
+        };
+    </script>
+</body>
+
+</html>
