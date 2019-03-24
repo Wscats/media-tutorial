@@ -54,6 +54,8 @@ window.URL.createObjectURL(new Blob(binaryData, {type: "application/zip"}));
 
 # webkitRTCPeerConnection
 
+# Blob
+
 
 # 参考文档
 

@@ -48,12 +48,22 @@
                 recordButton.textContent = "Stop Recording";
                 playButton.disabled = true;
                 downloadButton.disabled = true;
-                // mediaRecorder.onstop = handleStop;
-                // mediaRecorder.ondataavailable = handleDataAvailable; // 存放获取的数据
+                mediaRecorder.onstop = function (event) {
+                    console.log("Recorder stopped: ", event);
+                };
+                mediaRecorder.ondataavailable = function (event) {
+                    // 这个会不断输出，录像的片段
+                    console.log(event);
+                    if (event.data && event.data.size > 0) {
+                        recordedBlobs.push(event.data);
+                    }
+                }; // 存放获取的数据
                 mediaRecorder.start(10); //  开始录制 collect 10ms of data
                 console.log("MediaRecorder started", mediaRecorder);
             } else {
-                stopRecording();
+                mediaRecorder.stop();
+                recordedVideo.controls = true;
+
                 recordButton.textContent = "Start Recording";
                 playButton.disabled = false;
                 downloadButton.disabled = false;
@@ -62,12 +72,60 @@
                 let buffer = new Blob(recordedBlobs, {
                     type: "video/webm"
                 });
+                console.log(buffer);
                 test.src = window.URL.createObjectURL(buffer);
                 recordStream = test.captureStream();
             }
         };
-        playButton.onclick = call;
-        downloadButton.onclick = download;
+
+        navigator.mediaDevices.getUserMedia({
+                video: true,
+                audio: false
+            })
+            .then(function (stream) {
+                recordButton.disabled = false;
+                window.stream = stream; // 录制视频的时候要用到
+                localStream = stream;
+                localVideo.srcObject = stream;
+            }).catch(function (error) {
+                console.log(error);
+            });
+
+
+        playButton.onclick = function () {
+            localPeerConnection = new RTCPeerConnection(null);
+            localPeerConnection.onicecandidate = function gotLocalIceCandidate(event) {
+                if (event.candidate) {
+                    remotePeerConnection.addIceCandidate(new RTCIceCandidate(event.candidate)); //answer方接收ICE
+                }
+            };
+
+            remotePeerConnection = new RTCPeerConnection(null);
+            remotePeerConnection.onicecandidate = function gotRemoteIceCandidate(event) {
+                if (event.candidate) {
+                    localPeerConnection.addIceCandidate(new RTCIceCandidate(event.candidate)); //offer方接收ICE
+                }
+            };
+
+            remotePeerConnection.onaddstream = function gotRemoteStream(event) {
+                recordedVideo.srcObject = event.stream;
+            };
+
+            localPeerConnection.addStream(recordStream);
+            localPeerConnection.createOffer(function (description) { //description是offer方的  SD  ==>  传输的内容
+                localPeerConnection.setLocalDescription(description);
+                remotePeerConnection.setRemoteDescription(description); //answer方接收offer的SD
+                remotePeerConnection.createAnswer(function (description) {
+                    remotePeerConnection.setLocalDescription(description); //answer方设置本身自己的SD
+                    localPeerConnection.setRemoteDescription(description); //offer接收answer方的SD
+                }, function (error) {
+                    console.log(error)
+                }); //answer方发送自己的SD
+            }, function (error) {
+                console.log(error)
+            });
+        };
+        // downloadButton.onclick = download;
     </script>
 </body>
 
