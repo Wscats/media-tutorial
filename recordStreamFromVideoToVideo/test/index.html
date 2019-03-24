@@ -75,6 +75,7 @@
                 console.log(buffer);
                 test.src = window.URL.createObjectURL(buffer);
                 recordStream = test.captureStream();
+                console.log(recordStream);
             }
         };
 
@@ -83,6 +84,7 @@
                 audio: false
             })
             .then(function (stream) {
+                console.log(stream);
                 recordButton.disabled = false;
                 window.stream = stream; // 录制视频的时候要用到
                 localStream = stream;
@@ -94,14 +96,14 @@
 
         playButton.onclick = function () {
             localPeerConnection = new RTCPeerConnection(null);
-            localPeerConnection.onicecandidate = function gotLocalIceCandidate(event) {
+            localPeerConnection.onicecandidate = function(event) {
                 if (event.candidate) {
                     remotePeerConnection.addIceCandidate(new RTCIceCandidate(event.candidate)); //answer方接收ICE
                 }
             };
 
             remotePeerConnection = new RTCPeerConnection(null);
-            remotePeerConnection.onicecandidate = function gotRemoteIceCandidate(event) {
+            remotePeerConnection.onicecandidate = function(event) {
                 if (event.candidate) {
                     localPeerConnection.addIceCandidate(new RTCIceCandidate(event.candidate)); //offer方接收ICE
                 }
