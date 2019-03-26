@@ -98,7 +98,7 @@ mediaRecorder.ondataavailable = function(e) {
 }
 })
 .catch(function(err) {
-console.log('The following error occurred: ' + err);
+    console.log('The following error occurred: ' + err);
 })
 ```
 
@@ -139,6 +139,134 @@ localPeerConnection.createOffer(function (description) { //description是offer�
 ```
 
 # Blob
+
+`Blob` `Binary Large Object`的缩写，代表二进制类型的大对象
+
+```js
+new Blob(blobParts, [options]);
+```
+
+## 用法
+
+- blobParts：数组类型，数组中的每一项连接起来构成Blob对象的数据，数组中的每项元素可以是ArrayBuffer, ArrayBufferView, Blob, DOMString 。
+
+- options：可选项，字典格式类型，可以指定如下两个属性：
+    - type，默认值为 ""，它代表了将会被放入到blob中的数组内容的MIME类型。
+    - endings，默认值为"transparent"，用于指定包含行结束符\n的字符串如何被写入。 它是以下两个值中的一个： "native"，表示行结束符会被更改为适合宿主操作系统文件系统的换行符； "transparent"，表示会保持blob中保存的结束符不变。
+
+```js
+var data1 = "a";
+var data2 = "b";
+var data3 = "<div style='color:red;'>This is a blob</div>";
+var data4 = {
+    "name": "abc"
+};
+
+var blob1 = new Blob([data1]);
+var blob2 = new Blob([data1, data2]);
+var blob3 = new Blob([data3]);
+var blob4 = new Blob([JSON.stringify(data4)]);
+var blob5 = new Blob([data4]);
+var blob6 = new Blob([data3, data4]);
+
+console.log(blob1); //输出：Blob {size: 1, type: ""}
+console.log(blob2); //输出：Blob {size: 2, type: ""}
+console.log(blob3); //输出：Blob {size: 44, type: ""}
+console.log(blob4); //输出：Blob {size: 14, type: ""}
+console.log(blob5); //输出：Blob {size: 15, type: ""}
+console.log(blob6); //输出：Blob {size: 59, type: ""}
+```
+
+## slice方法
+
+`Blob`对象有一个`slice`方法，返回一个新的`Blob`对象，包含了源`Blob`对象中指定范围内的数据。
+```js
+slice([start], [end], [contentType])
+```
+
+- start： 可选，代表`Blob`里的下标，表示第一个会被会被拷贝进新的`Blob`的字节的起始位置。如果传入的是一个负数，那么这个偏移量将会从数据的末尾从后到前开始计算。
+- end： 可选，代表的是`Blob`的一个下标，这个下标-1的对应的字节将会是被拷贝进新的`Blob`的最后一个字节。如果你传入了一个负数，那么这个偏移量将会从数据的末尾从后到前开始计算。
+- contentType： 可选，给新的`Blob`赋予一个新的文档类型。这将会把它的`type`属性设为被传入的值。它的默认值是一个空的字符串。
+
+```js
+var data = "abcdef";
+var blob1 = new Blob([data]);
+var blob2 = blob1.slice(0, 3);
+
+console.log(blob1); //输出：Blob {size: 6, type: ""}
+console.log(blob2); //输出：Blob {size: 3, type: ""}
+let href = URL.createObjectURL(blob2); //浏览器可以直接打开href连接看输出
+console.log(href); //abc
+```
+
+## URL.createObjectURL()
+
+`URL.createObjectURL()`静态方法会创建一个`DOMString`，其中包含一个表示参数中给出的对象的URL。这个`URL`的生命周期和创建它的窗口中的`document`绑定。这个新的`URL`对象表示指定的`File`对象或 `Blob`对象。
+```js
+objectURL = URL.createObjectURL(blob);
+```
+
+# URL.revokeObjectURL()
+
+`URL.revokeObjectURL()`静态方法用来释放一个之前通过调用`URL.createObjectURL()`创建的已经存在的`URL`对象。当你结束使用某个`URL`对象时，应该通过调用这个方法来让浏览器知道不再需要保持这个文件的引用了。
+```js
+window.URL.revokeObjectURL(objectURL);
+```
+
+## 分割上传
+
+目前，`Blob`对象大多是运用在，处理大文件分割上传（利用`Blob`中`slice`方法），处理图片`canvas`跨域(避免增加`crossOrigin = "Anonymous"`,生成当前域名的`url`，然后`URL.revokeObjectURL()`释放，`createjs`有用到)，以及隐藏视频源路径等等。
+```js
+function upload(blobOrFile) {
+    var xhr = new XMLHttpRequest();
+    xhr.open('POST', '/server', true);
+    xhr.onload = function (e) {
+        // ...
+    };
+    xhr.send(blobOrFile);
+}
+
+document.querySelector('input[type="file"]').addEventListener('change', function (e) {
+var blob = this.files[0];
+const BYTES_PER_CHUNK = 1024 * 1024; // 1MB chunk sizes.
+const SIZE = blob.size;
+var start = 0;
+var end = BYTES_PER_CHUNK;
+while (start < SIZE) {
+    upload(blob.slice(start, end));
+    start = end;
+    end = start + BYTES_PER_CHUNK;
+}
+}, false);
+```
+
+# 下载
+
+```js
+var xhr = new XMLHttpRequest();
+xhr.open('GET', '/path/to/image.png', true);
+xhr.responseType = 'blob';
+xhr.send()
+
+xhr.onload = function (e) {
+    if (this.status == 200) {
+        var blob = this.response;
+
+        var img = document.createElement('img');
+        var URL = window.URL || window.webkitURL; //兼容处理
+        var objectUrl = URL.createObjectURL(blob);
+        img.onload = function (e) {
+            window.URL.revokeObjectURL(img.src); // 释放 url.
+        };
+
+        img.src = objectUrl;
+        document.body.appendChild(img);
+        // ...
+    }
+};
+
+xhr.send();
+```
 
 |代码|作用|类型|
 |-|-|-|

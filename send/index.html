@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>Document</title>
+</head>
+
+<body>
+    <script>
+        navigator.mediaDevices.getUserMedia({
+                video: true,
+                audio: true
+            })
+            .then((stream) => {
+                let recordedBlobs = [];
+                let mediaRecorder = new MediaRecorder(stream, {
+                    mimeType: "video/webm;codecs=vp9"
+                }); // 设置音频录入源、格式
+                mediaRecorder.onstop = function (event) {
+                    console.log("Recorder stopped: ", event);
+                };
+                let buffer = new Blob(recordedBlobs, {
+                    type: "video/webm"
+                });
+                mediaRecorder.ondataavailable = function (event) {
+                    // 这个会不断输出，录像的片段
+                    console.log(event);
+                    if (event.data && event.data.size > 0) {
+                        recordedBlobs.push(event.data);
+                    }
+                }; // 存放获取的数据
+                mediaRecorder.start(10); //  开始录制 collect 10ms of data
+                // mediaRecorder.stop();
+            }).catch((error) => {
+                console.log(error);
+            });
+    </script>
+</body>
+
+</html>

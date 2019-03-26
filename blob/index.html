@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>Document</title>
+</head>
+
+<body>
+    <script>
+        // var data1 = "a";
+        // var data2 = "b";
+        // var data3 = "<div style='color:red;'>This is a blob</div>";
+        // var data4 = {
+        //     "name": "abc"
+        // };
+
+        // var blob1 = new Blob([data1]);
+        // var blob2 = new Blob([data1, data2]);
+        // var blob3 = new Blob([data3]);
+        // var blob4 = new Blob([JSON.stringify(data4)]);
+        // var blob5 = new Blob([data4]);
+        // var blob6 = new Blob([data3, data4]);
+
+        // console.log(blob1); //输出：Blob {size: 1, type: ""}
+        // console.log(blob2); //输出：Blob {size: 2, type: ""}
+        // console.log(blob3); //输出：Blob {size: 44, type: ""}
+        // console.log(blob4); //输出：Blob {size: 14, type: ""}
+        // console.log(blob5); //输出：Blob {size: 15, type: ""}
+        // console.log(blob6); //输出：Blob {size: 59, type: ""}
+
+        // var data = "abcdef";
+        // var blob1 = new Blob([data]);
+        // var blob2 = blob1.slice(0, 3);
+
+        // console.log(blob1); //输出：Blob {size: 6, type: ""}
+        // console.log(blob2); //输出：Blob {size: 3, type: ""}
+        // let href = URL.createObjectURL(blob2); //浏览器可以直接打开href连接看输出
+        // console.log(href); //abc
+
+        window.URL = window.URL || window.webkitURL; // Take care of vendor prefixes.
+
+        var xhr = new XMLHttpRequest();
+        xhr.open('GET', '/path/to/image.png', true);
+        xhr.responseType = 'blob';
+        xhr.send()
+
+        xhr.onload = function (e) {
+            if (this.status == 200) {
+                var blob = this.response;
+
+                var img = document.createElement('img');
+                var URL = window.URL || window.webkitURL; //兼容处理
+                var objectUrl = URL.createObjectURL(blob);
+                img.onload = function (e) {
+                    window.URL.revokeObjectURL(img.src); // 释放 url.
+                };
+
+                img.src = objectUrl;
+                document.body.appendChild(img);
+                // ...
+            }
+        };
+
+        xhr.send();
+
+
+        function upload(blobOrFile) {
+            var xhr = new XMLHttpRequest();
+            xhr.open('POST', '/server', true);
+            xhr.onload = function (e) {
+                // ...
+            };
+            xhr.send(blobOrFile);
+        }
+
+        document.querySelector('input[type="file"]').addEventListener('change', function (e) {
+        var blob = this.files[0];
+        const BYTES_PER_CHUNK = 1024 * 1024; // 1MB chunk sizes.
+        const SIZE = blob.size;
+        var start = 0;
+        var end = BYTES_PER_CHUNK;
+        while (start < SIZE) {
+            upload(blob.slice(start, end));
+            start = end;
+            end = start + BYTES_PER_CHUNK;
+        }
+        }, false);
+    </script>
+</body>
+
+</html>

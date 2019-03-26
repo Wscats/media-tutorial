@@ -53,7 +53,7 @@
                 };
                 mediaRecorder.ondataavailable = function (event) {
                     // 这个会不断输出，录像的片段
-                    console.log(event);
+                    // console.log(event);
                     if (event.data && event.data.size > 0) {
                         recordedBlobs.push(event.data);
                     }
@@ -110,6 +110,7 @@
             };
 
             remotePeerConnection.onaddstream = function gotRemoteStream(event) {
+                console.log(event);
                 recordedVideo.srcObject = event.stream;
             };
 
