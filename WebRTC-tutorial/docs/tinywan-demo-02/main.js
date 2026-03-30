@@ -9,12 +9,12 @@
 
  'use strict';
 
-var video = document.querySelector('video');
-var canvas = window.canvas = document.querySelector('canvas');
+const video = document.querySelector('video');
+let canvas = window.canvas = document.querySelector('canvas');
 canvas.width = 480;
 canvas.height = 360;
 
-var button = document.querySelector('button');
+const button = document.querySelector('button');
 button.onclick = function(){
     console.log('button onclick');
     canvas.width = video.videoWidth;
@@ -22,7 +22,7 @@ button.onclick = function(){
     canvas.getContext('2d').drawImage(video,0,0,canvas.width,canvas.height);
 }
 
-var constraints = {
+const constraints = {
     audio:false,
     video:true
 };

@@ -1,6 +1,8 @@
-var server = require('http').Server();
-var socketServer = require('ws').Server;
-var wss = new socketServer({
+'use strict';
+
+const server = require('http').Server();
+const socketServer = require('ws').Server;
+const wss = new socketServer({
     server: server,
     port: 8080
 });

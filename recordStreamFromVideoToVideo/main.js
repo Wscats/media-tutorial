@@ -1,3 +1,5 @@
+'use strict';
+
 let mediaRecorder;
 let recordedBlobs;
 let sourceBuffer;
@@ -84,7 +86,7 @@ mediaSource.addEventListener("sourceopen", handleSourceOpen, false);
 
 /*
  * 回调处理就是需要赋值视频数据的地方，
- * 调用MediaSourceBuffer::addSourceBuffer方法来   ==>  构建一个存放视频数据的Buffer；
+ * 调用MediaSourceBuffer::addSourceBuffer方法来   ===>  构建一个存放视频数据的Buffer；
  */
 function handleSourceOpen(event) {
     trace("MediaSource opened！");
@@ -214,7 +216,7 @@ function call() {
     localPeerConnection.createOffer(gotLocalDescription, handleError);
 }
 
-function gotLocalDescription(description) { //description是offer方的  SD  ==>  传输的内容
+function gotLocalDescription(description) { //description是offer方的  SD  ===>  传输的内容
     localPeerConnection.setLocalDescription(description);
     trace("Offer from localPeerConnection: \n" + description.sdp);
     remotePeerConnection.setRemoteDescription(description); //answer方接收offer的SD

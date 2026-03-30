@@ -1,3 +1,5 @@
+'use strict';
+
 /**.-------------------------------------------------------------------------------------------------------------------
  * |  Github: https://github.com/Tinywan
  * |  Blog: http://www.cnblogs.com/Tinywan
@@ -6,20 +8,20 @@
  * |  DateTime: 2018/3/24 22:14
  * |  Mail: Overcome.wan@Gmail.com
  * '------------------------------------------------------------------------------------------------------------------*/
-var errorElement = document.querySelector('#errorMsg');
+const errorElement = document.querySelector('#errorMsg');
 console.log(errorElement);  // 打印：<div id="errorMsg"></div>
 
-var video = document.querySelector('video');
+const video = document.querySelector('video');
 console.log(video);  // <video id="gum-local" autoplay playsinline></video>
 
 // 将变量放在全局范围中以使它们可供浏览器控制台使用。
-var constraints = window.constraints = {
+let constraints = window.constraints = {
     audio:false,
     video:true
 };
 
 function handleSuccess(stream){
-    var videoTracks = stream.getVideoTracks();
+    const videoTracks = stream.getVideoTracks();
     console.log("有约束的流 : ",constraints);
     console.log("Using video device :"+videoTracks[0].label);
     stream.oninactive = function(){

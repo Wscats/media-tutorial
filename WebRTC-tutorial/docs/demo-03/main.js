@@ -6,11 +6,11 @@ var sendChannel;
 var receiveChannel;
 var pcConstraint;
 var dataConstraint;
-var dataChannelSend = document.querySelector('textarea#dataChannelSend');
-var dataChannelReceive = document.querySelector('textarea#dataChannelReceive');
-var startButton = document.querySelector('button#startButton');
-var sendButton = document.querySelector('button#sendButton');
-var closeButton = document.querySelector('button#closeButton');
+const dataChannelSend = document.querySelector('textarea#dataChannelSend');
+const dataChannelReceive = document.querySelector('textarea#dataChannelReceive');
+const startButton = document.querySelector('button#startButton');
+const sendButton = document.querySelector('button#sendButton');
+const closeButton = document.querySelector('button#closeButton');
 
 startButton.onclick = createConnection;
 sendButton.onclick = sendData;
@@ -26,7 +26,7 @@ function disableSendButton() {
 
 function createConnection() {
   dataChannelSend.placeholder = '';
-  var servers = null;
+  const servers = null;
   pcConstraint = null;
   dataConstraint = null;
   trace('Using SCTP based data channels');
@@ -67,7 +67,7 @@ function onCreateSessionDescriptionError(error) {
 }
 
 function sendData() {
-  var data = dataChannelSend.value;
+  const data = dataChannelSend.value;
   sendChannel.send(data);
   trace('Sent Data: ' + data);
 }
@@ -157,7 +157,7 @@ function onReceiveMessageCallback(event) {
 }
 
 function onSendChannelStateChange() {
-  var readyState = sendChannel.readyState;
+  let readyState = sendChannel.readyState;
   trace('Send channel state is: ' + readyState);
   if (readyState === 'open') {
     dataChannelSend.disabled = false;
@@ -172,7 +172,7 @@ function onSendChannelStateChange() {
 }
 
 function onReceiveChannelStateChange() {
-  var readyState = receiveChannel.readyState;
+  const readyState = receiveChannel.readyState;
   trace('Receive channel state is: ' + readyState);
 }
 
@@ -181,7 +181,7 @@ function trace(text) {
     text = text.substring(0, text.length - 1);
   }
   if (window.performance) {
-    var now = (window.performance.now() / 1000).toFixed(3);
+    const now = (window.performance.now() / 1000).toFixed(3);
     console.log(now + ': ' + text);
   } else {
     console.log(text);
